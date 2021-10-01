@@ -80,7 +80,7 @@ class DatasetLoader(Dataset):
                             (joint_img[i,2] < 1)
                             )
 
-        vis = False
+        vis = True
         if vis:
             filename = str(random.randrange(1,500))
             tmpimg = img_patch.copy().astype(np.uint8)

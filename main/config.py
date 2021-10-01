@@ -9,7 +9,7 @@ class Config:
     # training set
     # 3D: Human36M, MuCo
     # 2D: MSCOCO, MPII 
-    trainset_3d = ['Human36M']
+    trainset_3d = ['MPII']
     trainset_2d = ['MPII']
 
     # testing set

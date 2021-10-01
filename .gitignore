@@ -48,3 +48,13 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Images
+*.jpg
+*.png
+*.mp4
+*.avi
+output/
+
+# Snapshots
+*.tar

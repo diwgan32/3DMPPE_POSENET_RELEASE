@@ -111,7 +111,11 @@ def vis_3d_multiple_skeleton(kpt_3d, kpt_3d_vis, kps_lines, filename=None):
     ax.set_ylabel('Z Label')
     ax.set_zlabel('Y Label')
     ax.legend()
-    
-    plt.show()
-    cv2.waitKey(0)
+    fig.canvas.draw()
+    data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+    data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    return data
+    #plt.show()
+    #plt.savefig(filename)
+    #cv2.waitKey(0)
 

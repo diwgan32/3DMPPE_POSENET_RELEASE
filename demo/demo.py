@@ -60,19 +60,37 @@ model.eval()
 
 # prepare input image
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=cfg.pixel_mean, std=cfg.pixel_std)])
-img_path = 'input.jpg'
+img_path = 'box_input.png'
 original_img = cv2.imread(img_path)
 original_img_height, original_img_width = original_img.shape[:2]
 
 # prepare bbox
+#bbox_list = [
+#[139.41, 102.25, 222.39, 241.57],\
+#[287.17, 61.52, 74.88, 165.61],\
+#[540.04, 48.81, 99.96, 223.36],\
+#[372.58, 170.84, 266.63, 217.19],\
+#[0.5, 43.74, 90.1, 220.09]] # xmin, ymin, width, height
+#root_depth_list = [11250.5732421875, 15522.8701171875, 11831.3828125, 8852.556640625, 12572.5966796875] # obtain this from RootNet (https://github.com/mks0601/3DMPPE_ROOTNET_RELEASE/tree/master/demo)
+#assert len(bbox_list) == len(root_depth_list)
+
+#bbox_list = [
+#    [171, 193, 197, 389]
+#] # jeldwen_input.png
+#root_depth_list = [11250.5732421875]
+
+#bbox_list = [
+#     [201, 218, 195, 285],
+#     [153, 236, 66, 186],
+#     [96, 237, 69, 151]
+#] # clothing_input.png
+#root_depth_list = [11250.5732421875, 15522.8701171875, 11831.3828125]
+
 bbox_list = [
-[139.41, 102.25, 222.39, 241.57],\
-[287.17, 61.52, 74.88, 165.61],\
-[540.04, 48.81, 99.96, 223.36],\
-[372.58, 170.84, 266.63, 217.19],\
-[0.5, 43.74, 90.1, 220.09]] # xmin, ymin, width, height
-root_depth_list = [11250.5732421875, 15522.8701171875, 11831.3828125, 8852.556640625, 12572.5966796875] # obtain this from RootNet (https://github.com/mks0601/3DMPPE_ROOTNET_RELEASE/tree/master/demo)
-assert len(bbox_list) == len(root_depth_list)
+     [112, 262, 290, 517]
+] # box_input
+root_depth_list = [11250.5732421875]
+
 person_num = len(bbox_list)
 
 # normalized camera intrinsics
@@ -115,8 +133,8 @@ for n in range(person_num):
     vis_kps[1,:] = output_pose_2d_list[n][:,1]
     vis_kps[2,:] = 1
     vis_img = vis_keypoints(vis_img, vis_kps, skeleton)
-cv2.imwrite('output_pose_2d.jpg', vis_img)
+cv2.imwrite(f'outputs/output_2d_{img_path.split(".")[0]}.jpg', vis_img)
 
 # visualize 3d poses
 vis_kps = np.array(output_pose_3d_list)
-vis_3d_multiple_skeleton(vis_kps, np.ones_like(vis_kps), skeleton, 'output_pose_3d (x,y,z: camera-centered. mm.)')
+vis_3d_multiple_skeleton(vis_kps, np.ones_like(vis_kps), skeleton, f'outputs/output_3d_{img_path.split(".")[0]}.jpg')
