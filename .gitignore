@@ -58,3 +58,5 @@ output/
 
 # Snapshots
 *.tar
+
+.DS_Store
