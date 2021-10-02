@@ -83,18 +83,22 @@ class AIST:
                 if bbox is None: continue
 
                 # joints and vis
-                joint_img = np.array(ann['keypoints']).reshape(-1,3)
-                
-                joint_vis = (joint_img[:,2].copy().reshape(-1,1) > 0)
-                joint_img[:,2] = 0
                 f = np.array(db.imgs[ann['image_id']]["camera_param"]['focal'])
                 c = np.array(db.imgs[ann['image_id']]["camera_param"]['princpt'])
+
+                joint_cam = np.array(ann['joint_cam'])
+                joint_img = cam2pixel(joint_cam, f, c)
+                joint_img[:,2] = joint_img[:,2] - joint_cam[self.root_idx,2]
+                joint_vis = np.ones((self.joint_num,1))
+                joint_img[:,2] = 0
+                
                 img_path = osp.join(self.img_dir, db.imgs[ann['image_id']]['file_name'])
                 data.append({
                     'img_path': img_path,
                     'bbox': bbox,
-                    'joint_img': joint_img, # [org_img_x, org_img_y, 0]
+                    'joint_img': joint_img, # [org_img_x, org_img_y, depth - root_depth]
                     'joint_vis': joint_vis,
+                    'joint_cam': joint_cam, # [X, Y, Z] in camera coordinate
                     'f': f, 
                     'c': c 
                 })
