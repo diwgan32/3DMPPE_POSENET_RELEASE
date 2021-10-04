@@ -102,6 +102,7 @@ class AIST:
                     'f': f, 
                     'c': c 
                 })
+        return data
 
     def evaluate(self, preds, result_dir):
         
