@@ -8,15 +8,15 @@ import json
 import cv2
 import random
 import math
-from utils.pose_utils import pixel2cam
+from utils.pose_utils import pixel2cam, process_bbox
 from utils.vis import vis_keypoints, vis_3d_skeleton
 
 
 class MSCOCO:
     def __init__(self, data_split):
         self.data_split = data_split
-        self.img_dir = osp.join('..', 'data', 'MSCOCO', 'images')
-        self.train_annot_path = osp.join('..', 'data', 'MSCOCO', 'annotations', 'person_keypoints_train2017.json')
+        self.img_dir = "/home/ubuntu/ProcessedDatasets/mscoco/images"
+        self.train_annot_path = "/home/ubuntu/ProcessedDatasets/mscoco/annotations/person_keypoints_train2017.json"
         self.test_annot_path = osp.join('..', 'data', 'MSCOCO', 'annotations', 'person_keypoints_val2017.json')
         self.human_3d_bbox_root_dir = osp.join('..', 'data', 'MSCOCO', 'bbox_root', 'bbox_root_coco_output.json')
         
@@ -24,7 +24,8 @@ class MSCOCO:
             self.joint_num = 19 # original: 17, but manually added 'Thorax', 'Pelvis'
             self.joints_name = ('Nose', 'L_Eye', 'R_Eye', 'L_Ear', 'R_Ear', 'L_Shoulder', 'R_Shoulder', 'L_Elbow', 'R_Elbow', 'L_Wrist', 'R_Wrist', 'L_Hip', 'R_Hip', 'L_Knee', 'R_Knee', 'L_Ankle', 'R_Ankle', 'Thorax', 'Pelvis')
             self.flip_pairs = ( (1, 2), (3, 4), (5, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16) )
-            self.skeleton = ( (1, 2), (0, 1), (0, 2), (2, 4), (1, 3), (6, 8), (8, 10), (5, 7), (7, 9), (12, 14), (14, 16), (11, 13), (13, 15), (5, 6), (11, 12) )
+            self.skeleton = ((0, 1), (0, 2), (1, 3), (2, 4), (11, 12), (0, 5), (0, 6), (5, 7),\
+                    (6, 8), (7, 9), (8, 10), (5, 11), (6, 12), (11, 13), (12, 14), (13, 15), (14, 16))
             self.joints_have_depth = False
 
             self.lshoulder_idx = self.joints_name.index('L_Shoulder')
