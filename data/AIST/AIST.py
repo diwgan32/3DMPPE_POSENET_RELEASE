@@ -12,9 +12,9 @@ from utils.vis import vis_keypoints, vis_3d_skeleton
 class AIST:
     def __init__(self, data_split):
         self.data_split = data_split
-        self.img_dir = "/home/ubuntu/ProcessedDatasets/aist_processed/"
-        self.annot_path = "/home/ubuntu/ProcessedDatasets/aist_processed/"
-        self.train_annot_path = "/home/ubuntu/ProcessedDatasets/aist_processed/aist_training.json"
+        self.img_dir = "/home/fsuser/ProcessedDatasets/aist_processed/"
+        self.annot_path = "/home/fsuser/ProcessedDatasets/aist_processed/"
+        self.train_annot_path = "/home/fsuser/ProcessedDatasets/aist_processed/aist_training.json"
         self.human_bbox_root_dir = osp.join('..', 'data', 'Human36M', 'bbox_root', 'bbox_root_human36m_output.json')
         self.joint_num = 18 # Orig 17 (as per COCO, added pelvis)
         self.joints_name = (

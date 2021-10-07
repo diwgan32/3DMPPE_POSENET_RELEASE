@@ -12,8 +12,8 @@ from utils.vis import vis_keypoints, vis_3d_skeleton
 class Human36M:
     def __init__(self, data_split):
         self.data_split = data_split
-        self.img_dir = "/home/ubuntu/ProcessedDatasets/human3.6m/images"
-        self.annot_path = "/home/ubuntu/ProcessedDatasets/human3.6m/annotations"
+        self.img_dir = "/home/fsuser/ProcessedDatasets/human3.6m/images"
+        self.annot_path = "/home/fsuser/ProcessedDatasets/human3.6m/annotations"
         self.human_bbox_root_dir = osp.join('..', 'data', 'Human36M', 'bbox_root', 'bbox_root_human36m_output.json')
         self.joint_num = 18 # original:17, but manually added 'Thorax'
         self.joints_name = ('Pelvis', 'R_Hip', 'R_Knee', 'R_Ankle', 'L_Hip', 'L_Knee', 'L_Ankle', 'Torso', 'Neck', 'Nose', 'Head', 'L_Shoulder', 'L_Elbow', 'L_Wrist', 'R_Shoulder', 'R_Elbow', 'R_Wrist', 'Thorax')
