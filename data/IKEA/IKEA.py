@@ -9,12 +9,12 @@ import random
 import json
 from utils.vis import vis_keypoints, vis_3d_skeleton
 
-class AIST:
+class IKEA:
     def __init__(self, data_split):
         self.data_split = data_split
         self.img_dir = "/home/fsuser/ProcessedDatasets/ANU_ikea_dataset_used_frames"
         self.annot_path = "/home/fsuser/ProcessedDatasets/ANU_ikea_dataset_used_frames"
-        self.train_annot_path = "/home/fsuser/ProcessedDatasets/ANU_ikea_dataset_used_frames/aist_training.json"
+        self.train_annot_path = "/home/fsuser/ProcessedDatasets/ANU_ikea_dataset_used_frames/ikea_training.json"
         self.human_bbox_root_dir = osp.join('..', 'data', 'Human36M', 'bbox_root', 'bbox_root_human36m_output.json')
         self.joint_num = 18 # Orig 17 (as per COCO, added pelvis)
 
@@ -90,13 +90,16 @@ class AIST:
                 f = np.array(db.imgs[ann['image_id']]["camera_param"]['focal'])
                 c = np.array(db.imgs[ann['image_id']]["camera_param"]['princpt'])
 
-                joint_cam = np.array(ann['joint_cam'])
-                pelvis = (joint_cam[:, self.lhip_idx] + joint_cam[:, self.rhip_idx])/2.0
+                # Ignore the 4th column (which is confidence I believe)
+                joint_cam = np.array(ann['joint_cam'])[:, 0:3]
+                pelvis = (joint_cam[self.lhip_idx] + joint_cam[self.rhip_idx])/2.0
 
-                joint_cam = np.concatenate((joint_cam, pelvis), axis=0)
+                joint_cam = np.vstack((joint_cam, pelvis))
                 joint_img = cam2pixel(joint_cam, f, c)
                 joint_img[:,2] = joint_img[:,2] - joint_cam[self.root_idx,2]
-                joint_vis = np.ones((self.joint_num,1))
+
+                # If all of the coords of a specific joint are 0, it's invalid
+                joint_vis = np.expand_dims(np.where(np.all(joint_cam == 0, axis=1), 0, 1), 1)
                 joint_img[:,2] = 0
                 
                 img_path = osp.join(self.img_dir, db.imgs[ann['image_id']]['file_name'])
