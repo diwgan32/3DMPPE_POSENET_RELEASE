@@ -14,6 +14,7 @@ from config import cfg
 from model import get_pose_net
 from dataset import DatasetLoader
 from multiple_datasets import MultipleDatasets
+import torch_utils
 
 # dynamic dataset import
 for i in range(len(cfg.trainset_3d)):
@@ -48,6 +49,8 @@ class Base(object):
     def save_model(self, state, epoch):
         file_path = osp.join(cfg.model_dir,'snapshot_{}.pth.tar'.format(str(epoch)))
         torch.save(state, file_path)
+        datasets = cfg.trainset_2d + cfg.trainset_3d
+        torch_utils.save(state, "tumeke_posenet", {"datasets": datasets})
         self.logger.info("Write snapshot into {}".format(file_path))
 
     def load_model(self, model, optimizer):
