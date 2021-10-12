@@ -9,20 +9,23 @@ import random
 import json
 from utils.vis import vis_keypoints, vis_3d_skeleton
 
-class AIST:
+class Panoptic:
     def __init__(self, data_split):
         self.data_split = data_split
-        self.img_dir = "/data/ProcessedDatasets/aist_processed/"
-        self.annot_path = "/data/ProcessedDatasets/aist_processed/"
-        self.train_annot_path = "/data/ProcessedDatasets/aist_processed/aist_training_final.json"
+        self.img_dir = "/data/ProcessedDatasets/panoptic_processed/"
+        self.annot_path = "/data/ProcessedDatasets/panoptic_processed/"
+        self.train_annot_path = "/data/ProcessedDatasets/panoptic_processed/panoptic_training_final.json"
         self.human_bbox_root_dir = osp.join('..', 'data', 'Human36M', 'bbox_root', 'bbox_root_human36m_output.json')
-        self.joint_num = 18
+        self.joint_num = 18 # Orig 17 (as per COCO, added pelvis)   
         self.joints_name = (
             'Nose', 'L_Eye', 'R_Eye', 'L_Ear', 'R_Ear', \
             'L_Shoulder', 'R_Shoulder', 'L_Elbow', 'R_Elbow', \
             'L_Wrist', 'R_Wrist', 'L_Hip', 'R_Hip', 'L_Knee', \
             'R_Knee', 'L_Ankle', 'R_Ankle', "Pelvis"
-        )
+        ) # Same as MSCOCO, added pelvis
+
+        self.lhip_idx = self.joints_name.index('L_Hip')
+        self.rhip_idx = self.joints_name.index('R_Hip')
 
         self.flip_pairs = ( )
         self.skeleton = (
@@ -75,10 +78,10 @@ class AIST:
             db = COCO(self.train_annot_path)
             data = []
             for aid in db.anns.keys():
-                if (not ann["is_train"]):
-                    continue
 
                 ann = db.anns[aid]
+                if (not ann["is_train"]):
+                    continue
                 img = db.loadImgs(ann['image_id'])[0]
                 width, height = img['width'], img['height']
 
@@ -90,9 +93,12 @@ class AIST:
                 c = np.array(db.imgs[ann['image_id']]["camera_param"]['princpt'])
 
                 joint_cam = np.array(ann['joint_cam'])
+                pelvis = (joint_cam[self.lhip_idx] + joint_cam[self.rhip_idx])/2.0
+                joint_cam = np.vstack((joint_cam, pelvis))
+
                 joint_img = cam2pixel(joint_cam, f, c)
                 joint_img[:,2] = joint_img[:,2] - joint_cam[self.root_idx,2]
-                joint_vis = np.ones((self.joint_num,1))
+                joint_vis = np.all(joint_cam == 0, axis=1)
                 joint_img[:,2] = 0
                 
                 img_path = osp.join(self.img_dir, db.imgs[ann['image_id']]['file_name'])
