@@ -77,10 +77,10 @@ if __name__ == "__main__":
     cudnn.benchmark = True
 
     # MuCo joint set
-    joint_num = 21
-    joints_name = ('Head_top', 'Thorax', 'R_Shoulder', 'R_Elbow', 'R_Wrist', 'L_Shoulder', 'L_Elbow', 'L_Wrist', 'R_Hip', 'R_Knee', 'R_Ankle', 'L_Hip', 'L_Knee', 'L_Ankle', 'Pelvis', 'Spine', 'Head', 'R_Hand', 'L_Hand', 'R_Toe', 'L_Toe')
+    joint_num = 18
+    joints_name = ('Pelvis', 'R_Hip', 'R_Knee', 'R_Ankle', 'L_Hip', 'L_Knee', 'L_Ankle', 'Torso', 'Neck', 'Nose', 'Head', 'L_Shoulder', 'L_Elbow', 'L_Wrist', 'R_Shoulder', 'R_Elbow', 'R_Wrist', 'Thorax') 
     flip_pairs = ( (2, 5), (3, 6), (4, 7), (8, 11), (9, 12), (10, 13), (17, 18), (19, 20) )
-    skeleton = ( (0, 16), (16, 1), (1, 15), (15, 14), (14, 8), (14, 11), (8, 9), (9, 10), (10, 19), (11, 12), (12, 13), (13, 20), (1, 2), (2, 3), (3, 4), (4, 17), (1, 5), (5, 6), (6, 7), (7, 18) )
+    skeleton = ( (0, 7), (7, 8), (8, 9), (9, 10), (8, 11), (11, 12), (12, 13), (8, 14), (14, 15), (15, 16), (0, 1), (1, 2), (2, 3), (0, 4), (4, 5), (5, 6) )
 
     # snapshot load
     model_path = './snapshot_%d.pth.tar' % int(args.test_epoch)
@@ -123,7 +123,9 @@ if __name__ == "__main__":
 
         bbox_list = [get_bbox(wrnch_data, frame_no, frame.shape)]
         if (bbox_list[0] is None):
-            continue
+             writer.write(frame)
+             frame_no += 1
+             continue
         root_depth_list = [11250.5732421875]
 
         person_num = len(bbox_list)

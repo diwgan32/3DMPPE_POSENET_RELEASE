@@ -68,10 +68,9 @@ def vis_3d_skeleton(kpt_3d, kpt_3d_vis, kps_lines, filename=None):
         ax.set_title(filename)
 
     ax.set_xlabel('X Label')
-    ax.set_ylabel('Z Label')
-    ax.set_zlabel('Y Label')
-    ax.legend()
-    
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+
     plt.show()
     cv2.waitKey(0)
 
@@ -108,8 +107,13 @@ def vis_3d_multiple_skeleton(kpt_3d, kpt_3d_vis, kps_lines, filename=None):
         ax.set_title(filename)
 
     ax.set_xlabel('X Label')
-    ax.set_ylabel('Z Label')
-    ax.set_zlabel('Y Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+
+    ax.set_xlim([-800, 800])
+    ax.set_zlim([-2000, 2000])
+    ax.set_ylim([11000, 11500])
+
     ax.legend()
     fig.canvas.draw()
     data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
