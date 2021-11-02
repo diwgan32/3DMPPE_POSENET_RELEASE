@@ -75,6 +75,7 @@ class IKEA:
         return joint_coord
 
     def load_data(self):
+        print("Loading IKEA data")
         if self.data_split == 'train':
             db = COCO(self.train_annot_path)
             data = []
@@ -100,7 +101,6 @@ class IKEA:
 
                 # If all of the coords of a specific joint are 0, it's invalid
                 joint_vis = np.expand_dims(np.where(np.all(joint_cam == 0, axis=1), 0, 1), 1)
-                joint_img[:,2] = 0
                 
                 img_path = osp.join(self.img_dir, db.imgs[ann['image_id']]['file_name'])
                 data.append({
@@ -112,6 +112,7 @@ class IKEA:
                     'f': f, 
                     'c': c 
                 })
+        print(f"Length: {len(data)}")
         return data
 
     def evaluate(self, preds, result_dir):

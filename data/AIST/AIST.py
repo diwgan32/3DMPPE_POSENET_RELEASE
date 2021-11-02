@@ -14,14 +14,14 @@ class AIST:
         self.data_split = data_split
         self.img_dir = "/data/ProcessedDatasets/aist_processed/"
         self.annot_path = "/data/ProcessedDatasets/aist_processed/"
-        self.train_annot_path = "/data/ProcessedDatasets/aist_processed/aist_training_final.json"
+        self.train_annot_path = "/data/ProcessedDatasets/aist_processed/aist_training_final_1m.json"
         self.human_bbox_root_dir = osp.join('..', 'data', 'Human36M', 'bbox_root', 'bbox_root_human36m_output.json')
-        self.joint_num = 18
+        self.joint_num = 19
         self.joints_name = (
             'Nose', 'L_Eye', 'R_Eye', 'L_Ear', 'R_Ear', \
             'L_Shoulder', 'R_Shoulder', 'L_Elbow', 'R_Elbow', \
             'L_Wrist', 'R_Wrist', 'L_Hip', 'R_Hip', 'L_Knee', \
-            'R_Knee', 'L_Ankle', 'R_Ankle', "Pelvis"
+            'R_Knee', 'L_Ankle', 'R_Ankle', "Pelvis", "Thorax"
         )
 
         self.flip_pairs = ( )
@@ -29,7 +29,7 @@ class AIST:
             (1, 2), (0, 1), (0, 2), (2, 4), (1, 3),
             (6, 8), (8, 10), (5, 7), (7, 9),
             (12, 14), (14, 16), (11, 13), (13, 15),
-            (5, 6), (11, 12)
+            (5, 6), (11, 12), (18, 17)
         )
         self.joints_have_depth = True
         self.eval_joint = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)
@@ -39,6 +39,12 @@ class AIST:
         self.rshoulder_idx = self.joints_name.index('R_Shoulder')
         self.protocol = 2
         self.data = self.load_data()
+    
+    def add_thorax(self, joint_coord):
+        thorax = (joint_coord[self.lshoulder_idx, :] + joint_coord[self.rshoulder_idx, :]) * 0.5
+        thorax = thorax.reshape((1, 3))
+        joint_coord = np.concatenate((joint_coord, thorax), axis=0)
+        return joint_coord
 
     def get_subsampling_ratio(self):
         if self.data_split == 'train':
@@ -71,14 +77,14 @@ class AIST:
         return joint_coord
 
     def load_data(self):
+        print("Loading AIST data")
         if self.data_split == 'train':
             db = COCO(self.train_annot_path)
             data = []
             for aid in db.anns.keys():
-                if (not ann["is_train"]):
-                    continue
-
                 ann = db.anns[aid]
+                if (not db.imgs[ann['image_id']]["is_train"]):
+                    continue
                 img = db.loadImgs(ann['image_id'])[0]
                 width, height = img['width'], img['height']
 
@@ -90,10 +96,10 @@ class AIST:
                 c = np.array(db.imgs[ann['image_id']]["camera_param"]['princpt'])
 
                 joint_cam = np.array(ann['joint_cam'])
+                joint_cam = self.add_thorax(joint_cam)
                 joint_img = cam2pixel(joint_cam, f, c)
                 joint_img[:,2] = joint_img[:,2] - joint_cam[self.root_idx,2]
                 joint_vis = np.ones((self.joint_num,1))
-                joint_img[:,2] = 0
                 
                 img_path = osp.join(self.img_dir, db.imgs[ann['image_id']]['file_name'])
                 data.append({
@@ -105,6 +111,7 @@ class AIST:
                     'f': f, 
                     'c': c 
                 })
+        print(f"Length: {len(data)}")
         return data
 
     def evaluate(self, preds, result_dir):

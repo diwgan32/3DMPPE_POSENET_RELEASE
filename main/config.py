@@ -9,9 +9,10 @@ class Config:
     # training set
     # 3D: Human36M, MuCo
     # 2D: MSCOCO, MPII 
-    trainset_3d = ['Human36M', 'AIST', 'IKEA']
-    trainset_2d = ['MPII', "MSCOCO"]
-
+    trainset_3d = ['Human36M', 'AIST', 'Panoptic', 'IKEA']
+    trainset_2d = ['MPII', 'MSCOCO']
+    
+    datasets_named = ['Human36M', 'IKEA', 'AIST_1m', 'Panoptic_1m', 'MPII', "MSCOCO"]
     # testing set
     # Human36M, MuPoTS, MSCOCO
     testset = 'Human36M'
@@ -40,9 +41,9 @@ class Config:
     ## training config
     lr_dec_epoch = [17, 21]
     end_epoch = 25
-    lr = 1e-3
+    lr = 1.5e-3
     lr_dec_factor = 10
-    batch_size = 32
+    batch_size = 56
 
     ## testing config
     test_batch_size = 32

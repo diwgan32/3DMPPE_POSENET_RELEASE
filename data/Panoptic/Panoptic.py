@@ -14,26 +14,21 @@ class Panoptic:
         self.data_split = data_split
         self.img_dir = "/data/ProcessedDatasets/panoptic_processed/"
         self.annot_path = "/data/ProcessedDatasets/panoptic_processed/"
-        self.train_annot_path = "/data/ProcessedDatasets/panoptic_processed/panoptic_training_final.json"
+        self.train_annot_path = "/data/ProcessedDatasets/panoptic_processed/panoptic_training_final_1m.json"
         self.human_bbox_root_dir = osp.join('..', 'data', 'Human36M', 'bbox_root', 'bbox_root_human36m_output.json')
-        self.joint_num = 18 # Orig 17 (as per COCO, added pelvis)   
+        self.joint_num = 19 # COCO19
         self.joints_name = (
-            'Nose', 'L_Eye', 'R_Eye', 'L_Ear', 'R_Ear', \
-            'L_Shoulder', 'R_Shoulder', 'L_Elbow', 'R_Elbow', \
-            'L_Wrist', 'R_Wrist', 'L_Hip', 'R_Hip', 'L_Knee', \
-            'R_Knee', 'L_Ankle', 'R_Ankle', "Pelvis"
+            'Neck', 'Nose', 'Pelvis', 'L_Shoulder', 'L_Elbow', 'L_Wrist',
+            'L_Hip', 'L_Knee', 'L_Ankle', 'R_Shoulder', 'R_Elbow', \
+            'R_Wrist', 'R_Hip', 'R_Knee', 'R_Ankle', 'R_Eye', \
+            'L_Eye', 'R_Ear', 'L_Ear'
         ) # Same as MSCOCO, added pelvis
 
         self.lhip_idx = self.joints_name.index('L_Hip')
         self.rhip_idx = self.joints_name.index('R_Hip')
 
         self.flip_pairs = ( )
-        self.skeleton = (
-            (1, 2), (0, 1), (0, 2), (2, 4), (1, 3),
-            (6, 8), (8, 10), (5, 7), (7, 9),
-            (12, 14), (14, 16), (11, 13), (13, 15),
-            (5, 6), (11, 12)
-        )
+        self.skeleton = ((0, 1), (0, 3), (3, 4), (4, 5), (0, 2), (2, 6), (6, 7), (7, 8), (2, 12), (12, 13), (13, 14), (0, 9), (9, 10), (10, 11))
         self.joints_have_depth = True
         self.eval_joint = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)
 
@@ -74,13 +69,14 @@ class Panoptic:
         return joint_coord
 
     def load_data(self):
+        print("Loading Panoptic data")
         if self.data_split == 'train':
             db = COCO(self.train_annot_path)
             data = []
+            print(len(db.anns.keys()))
             for aid in db.anns.keys():
-
                 ann = db.anns[aid]
-                if (not ann["is_train"]):
+                if (not db.imgs[ann['image_id']]["is_train"]):
                     continue
                 img = db.loadImgs(ann['image_id'])[0]
                 width, height = img['width'], img['height']
@@ -93,14 +89,10 @@ class Panoptic:
                 c = np.array(db.imgs[ann['image_id']]["camera_param"]['princpt'])
 
                 joint_cam = np.array(ann['joint_cam'])
-                pelvis = (joint_cam[self.lhip_idx] + joint_cam[self.rhip_idx])/2.0
-                joint_cam = np.vstack((joint_cam, pelvis))
 
                 joint_img = cam2pixel(joint_cam, f, c)
                 joint_img[:,2] = joint_img[:,2] - joint_cam[self.root_idx,2]
-                joint_vis = np.all(joint_cam == 0, axis=1)
-                joint_img[:,2] = 0
-                
+                joint_vis = np.expand_dims(np.where(np.all(joint_cam != 0, axis=1), 1, 0), 1)
                 img_path = osp.join(self.img_dir, db.imgs[ann['image_id']]['file_name'])
                 data.append({
                     'img_path': img_path,
@@ -111,6 +103,7 @@ class Panoptic:
                     'f': f, 
                     'c': c 
                 })
+        print(f"Length: {len(data)}")
         return data
 
     def evaluate(self, preds, result_dir):

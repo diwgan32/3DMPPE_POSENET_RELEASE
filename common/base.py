@@ -49,7 +49,7 @@ class Base(object):
     def save_model(self, state, epoch):
         file_path = osp.join(cfg.model_dir,'snapshot_{}.pth.tar'.format(str(epoch)))
         torch.save(state, file_path)
-        datasets = cfg.trainset_2d + cfg.trainset_3d
+        datasets = cfg.datasets_named
         torch_utils.save(state, "tumeke_posenet", {"datasets": datasets})
         self.logger.info("Write snapshot into {}".format(file_path))
 

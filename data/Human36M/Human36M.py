@@ -144,7 +144,7 @@ class Human36M:
                 'root_cam': root_cam, # [X, Y, Z] in camera coordinate
                 'f': f,
                 'c': c})
-           
+        print(f"Length: {len(data)}") 
         return data
 
     def evaluate(self, preds, result_dir):
