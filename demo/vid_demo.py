@@ -194,9 +194,9 @@ if __name__ == "__main__":
         writer.write(vis_img)
 
         # visualize 3d poses
-        vis_kps = np.array(output_pose_3d_list)
-        output_viz = vis_3d_multiple_skeleton(vis_kps, np.ones_like(vis_kps), skeleton, 'output_pose_3d (x,y,z: camera-centered. mm.)')
-        writer_3d.write(output_viz)
+        #vis_kps = np.array(output_pose_3d_list)
+        #output_viz = vis_3d_multiple_skeleton(vis_kps, np.ones_like(vis_kps), skeleton, 'output_pose_3d (x,y,z: camera-centered. mm.)')
+        #writer_3d.write(output_viz)
         print(f"Processing frame {frame_no} of {len(wrnch_data['frames'])}")
         frame_no += 1
     with open(f'{args.output_path.split(".")[0]}.p', 'wb') as outfile:
