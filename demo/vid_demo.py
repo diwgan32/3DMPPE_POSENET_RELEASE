@@ -34,19 +34,21 @@ def get_body_pose(wrnch_data, frame_no):
 
 def get_bboxes(wrnch_data, frame_no, frame_shape):
     pose_2ds = get_body_pose(wrnch_data, frame_no)
-    if (pose2ds is None):
-        return None
+    if (pose_2ds is None):
+        return [None]
 
     bboxes = []
     for person in pose_2ds:
         pose2d = person["pose2d"]
-        return bboxes.append([
+        bboxes.append([
             pose2d["bbox"]["minX"] * frame.shape[1],
             pose2d["bbox"]["minY"] * frame.shape[0],
             pose2d["bbox"]["width"] * frame.shape[1],
             pose2d["bbox"]["height"] * frame.shape[0],
             person["id"]
         ])
+
+    return bboxes
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -114,6 +116,7 @@ if __name__ == "__main__":
     )
 
     frame_no = 0
+    pose_results_list = []
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -137,9 +140,10 @@ if __name__ == "__main__":
         # for each cropped and resized human image, forward it to PoseNet
         output_pose_2d_list = []
         output_pose_3d_list = []
+        pose_result = []
         for n in range(person_num):
-            bbox_data = bbox_list[n][:3]
-            person_id = bbox_list[n][3]
+            bbox_data = bbox_list[n][:4]
+            person_id = bbox_list[n][4]
             bbox = process_bbox(np.array(bbox_data), original_img_width, original_img_height)
             img, img2bb_trans = generate_patch_image(original_img, bbox, False, 1.0, 0.0, False) 
             img = transform(img).cuda()[None,:,:,:]
@@ -161,7 +165,6 @@ if __name__ == "__main__":
             pose_3d[:,2] = (pose_3d[:,2] / cfg.depth_dim * 2 - 1) * (cfg.bbox_3d_shape[0]/2) + root_depth_list[n]
             pose_3d = pixel2cam(pose_3d, focal, princpt)
             output_pose_3d_list.append(pose_3d.copy())
-
         # visualize 2d poses
         vis_img = original_img.copy()
         for n in range(person_num):
