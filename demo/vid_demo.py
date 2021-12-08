@@ -140,9 +140,8 @@ if __name__ == "__main__":
              frame_no += 1
              pose_results_list.append(pose_result)
              continue
-        root_depth_list = [11250.5732421875]
-
         person_num = len(bbox_list)
+        root_depth_list = [11250.5732421875]*person_num
 
         # normalized camera intrinsics
         focal = [1500, 1500] # x-axis, y-axis
