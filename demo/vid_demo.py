@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 import cv2
 import torch
+import pickle
 import torchvision.transforms as transforms
 from torch.nn.parallel.data_parallel import DataParallel
 import torch.backends.cudnn as cudnn
@@ -71,6 +72,15 @@ def parse_args():
     
     assert args.test_epoch, 'Test epoch is required.'
     return args
+
+def keypoints_to_hrnet(keypoints_2d):
+    conversion_order = [9, 0, 0, 0, 0, 11, 14, 12, 15, 13, 16, 4, 1, 5, 2, 6, 3]
+    reordered = keypoints_2d[conversion_order]
+    confidences = np.array([1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    return np.hstack((reordered, confidences[:, None]))
+
+def bbox_to_hrnet(bbox):
+    return [bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]]
 
 if __name__ == "__main__":
     # argument parsing
@@ -159,12 +169,20 @@ if __name__ == "__main__":
             pose_3d_xy1 = np.concatenate((pose_3d[:,:2], np.ones_like(pose_3d[:,:1])),1)
             img2bb_trans_001 = np.concatenate((img2bb_trans, np.array([0,0,1]).reshape(1,3)))
             pose_3d[:,:2] = np.dot(np.linalg.inv(img2bb_trans_001), pose_3d_xy1.transpose(1,0)).transpose(1,0)[:,:2]
-            output_pose_2d_list.append(pose_3d[:,:2].copy())
+            pose_2d_coords = pose_3d[:,:2].copy()
+            output_pose_2d_list.append(pose_2d_coords)
             
             # root-relative discretized depth -> absolute continuous depth
             pose_3d[:,2] = (pose_3d[:,2] / cfg.depth_dim * 2 - 1) * (cfg.bbox_3d_shape[0]/2) + root_depth_list[n]
             pose_3d = pixel2cam(pose_3d, focal, princpt)
             output_pose_3d_list.append(pose_3d.copy())
+            pose_result.append({
+                "bboxes": bbox_to_hrnet(bbox_list[n]),
+                "keypoints": keypoints_to_hrnet(pose_2d_coords),
+                "area": bbox_list[n][2] * bbox_list[n][3],
+                "track_id": person_id
+            })
+        pose_results_list.append(pose_result)
         # visualize 2d poses
         vis_img = original_img.copy()
         for n in range(person_num):
@@ -181,6 +199,8 @@ if __name__ == "__main__":
         writer_3d.write(output_viz)
         print(f"Processing frame {frame_no} of {len(wrnch_data['frames'])}")
         frame_no += 1
+    with open(f'{args.output_path.split(".")[0]}.p', 'wb') as outfile:
+        pickle.dump(pose_results_list, outfile)
     writer.release()
     writer_3d.release()
     cap.release()
