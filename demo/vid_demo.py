@@ -29,24 +29,24 @@ def get_body_pose(wrnch_data, frame_no):
     if ("persons" not in frame or len(frame["persons"]) == 0):
         print("No person")
         return None
-    person = frame["persons"][0]
-    if ("pose2d" not in person):
-        print("No human pose")
-        return None
-    pose2d = person["pose2d"]
-    return pose2d
 
-def get_bbox(wrnch_data, frame_no, frame_shape):
-    pose2d = get_body_pose(wrnch_data, frame_no)
-    if (pose2d is None):
+    return frame["persons"]
+
+def get_bboxes(wrnch_data, frame_no, frame_shape):
+    pose_2ds = get_body_pose(wrnch_data, frame_no)
+    if (pose2ds is None):
         return None
 
-    return [
-        pose2d["bbox"]["minX"] * frame.shape[1],
-        pose2d["bbox"]["minY"] * frame.shape[0],
-        pose2d["bbox"]["width"] * frame.shape[1],
-        pose2d["bbox"]["height"] * frame.shape[0]
-    ]
+    bboxes = []
+    for person in pose_2ds:
+        pose2d = person["pose2d"]
+        return bboxes.append([
+            pose2d["bbox"]["minX"] * frame.shape[1],
+            pose2d["bbox"]["minY"] * frame.shape[0],
+            pose2d["bbox"]["width"] * frame.shape[1],
+            pose2d["bbox"]["height"] * frame.shape[0],
+            person["id"]
+        ])
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -121,7 +121,7 @@ if __name__ == "__main__":
         original_img = frame
         original_img_height, original_img_width = original_img.shape[:2]
 
-        bbox_list = [get_bbox(wrnch_data, frame_no, frame.shape)]
+        bbox_list = get_bboxes(wrnch_data, frame_no, frame.shape)
         if (bbox_list[0] is None):
              writer.write(frame)
              frame_no += 1
@@ -138,7 +138,9 @@ if __name__ == "__main__":
         output_pose_2d_list = []
         output_pose_3d_list = []
         for n in range(person_num):
-            bbox = process_bbox(np.array(bbox_list[n]), original_img_width, original_img_height)
+            bbox_data = bbox_list[n][:3]
+            person_id = bbox_list[n][3]
+            bbox = process_bbox(np.array(bbox_data), original_img_width, original_img_height)
             img, img2bb_trans = generate_patch_image(original_img, bbox, False, 1.0, 0.0, False) 
             img = transform(img).cuda()[None,:,:,:]
 
