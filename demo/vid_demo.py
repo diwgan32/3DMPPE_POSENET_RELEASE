@@ -133,11 +133,12 @@ if __name__ == "__main__":
             break
         original_img = frame
         original_img_height, original_img_width = original_img.shape[:2]
-
+        pose_result = []
         bbox_list = get_bboxes(wrnch_data, frame_no, frame.shape)
         if (bbox_list[0] is None):
              writer.write(frame)
              frame_no += 1
+             pose_results_list.append(pose_result)
              continue
         root_depth_list = [11250.5732421875]
 
@@ -150,7 +151,7 @@ if __name__ == "__main__":
         # for each cropped and resized human image, forward it to PoseNet
         output_pose_2d_list = []
         output_pose_3d_list = []
-        pose_result = []
+        
         for n in range(person_num):
             bbox_data = bbox_list[n][:4]
             person_id = bbox_list[n][4]
